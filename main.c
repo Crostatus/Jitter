@@ -22,7 +22,7 @@ int main(){
   dev = pcap_findalldevs(&lista,errbuf);
   bpf_u_int32 subnet_mask, ip;
 
-  if(dev == -1)
+  if(dev == PCAP_ERROR)
     printf("ERRORE\n");
   else
     temp = lista;

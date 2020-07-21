@@ -4,11 +4,32 @@
 #include <netinet/if_ether.h>
 #include<time.h>
 #include<stdlib.h>
-//#include<error.h>
+
+typedef struct ip_address{
+    u_char byte1;
+    u_char byte2;
+    u_char byte3;
+    u_char byte4;
+}ip_address;
+
+typedef struct ip_header{
+    u_char  ver_ihl;        // Version (4 bits) + Internet header length (4 bits)
+    u_char  tos;            // Type of service
+    u_short tlen;           // Total length
+    u_short identification; // Identification
+    u_short flags_fo;       // Flags (3 bits) + Fragment offset (13 bits)
+    u_char  ttl;            // Time to live
+    u_char  proto;          // Protocol
+    u_short crc;            // Header checksum
+    ip_address  saddr;      // Source address
+    ip_address  daddr;      // Destination address
+    u_int   op_pad;         // Option + Padding
+}ip_header;
 
 #define SNAPLEN 65535
 //#define PCAP_ERRBUF_SIZE 128
-void my_packet_handler(u_char *args, const struct pcap_pkthdr *packet_header, const u_char *packet_body);
+void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_char *pkt_data);
+
 void print_packet_info(const u_char *packet, struct pcap_pkthdr packet_header);
 int main(){
   pcap_t *handle;
@@ -22,7 +43,7 @@ int main(){
   dev = pcap_findalldevs(&lista,errbuf);
   bpf_u_int32 subnet_mask, ip;
 
-  if(dev == PCAP_ERROR)
+  if(dev == -1)
     printf("ERRORE\n");
   else
     temp = lista;
@@ -67,16 +88,57 @@ if (pcap_compile(handle, &filter, filter_exp, 0, ip) == -1) {
         return 2;
     }
  /* Our function to output some info */
- print_packet_info(packet, packet_header);
+ //print_packet_info(packet, packet_header);
 
-pcap_loop(handle, 0, my_packet_handler, NULL);
+pcap_loop(handle, 0, packet_handler, NULL);
 
   return 0;
 }
 
-void my_packet_handler(u_char *args, const struct pcap_pkthdr *packet_header, const u_char *packet_body){
-    print_packet_info(packet_body, *packet_header);
-    return;
+/* Callback function invoked by libpcap for every incoming packet */
+void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_char *pkt_data)
+{
+    //struct tm ltime;
+    //char timestr[16];
+    ip_header *ih;
+    //udp_header *uh;
+    u_int ip_len;
+    //u_short sport,dport;
+    //time_t local_tv_sec;
+
+
+
+    /* convert the timestamp to readable format */
+    //local_tv_sec = header->ts.tv_sec;
+    //localtime_s(&ltime, &local_tv_sec);
+    //strftime( timestr, sizeof timestr, "%H:%M:%S", &ltime);
+
+    /* print timestamp and length of the packet */
+    //printf("%s.%.6d len:%d ", timestr, header->ts.tv_usec, header->len);
+
+    /* retireve the position of the ip header */
+    ih = (ip_header *) (pkt_data +
+        14); //length of ethernet header
+
+    /* retireve the position of the udp header */
+    /*ip_len = (ih->ver_ihl & 0xf) * 4;
+    uh = (udp_header *) ((u_char*)ih + ip_len);
+    */
+    /* convert from network byte order to host byte order */
+    /*sport = ntohs( uh->sport );
+    dport = ntohs( uh->dport );
+    */
+    /* print ip addresses and udp ports */
+    printf("%d.%d.%d.%d -> %d.%d.%d.%d\n",
+        ih->saddr.byte1,
+        ih->saddr.byte2,
+        ih->saddr.byte3,
+        ih->saddr.byte4,
+        ih->daddr.byte1,
+        ih->daddr.byte2,
+        ih->daddr.byte3,
+        ih->daddr.byte4
+        );
 }
 
 void print_packet_info(const u_char *packet, struct pcap_pkthdr packet_header) {

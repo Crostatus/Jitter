@@ -3,17 +3,21 @@
     #include <stdlib.h> //size_t, NULL
     #include <time.h>
 
-    typedef struct{
+    struct Q{
         struct timespec info;
-        struct QueueNode *next;
-    } QueueNode;
+        struct Q *next;
+    };
 
-    typedef struct {
-		void *key;
+    typedef struct Q QueueNode;
+
+    struct KAV{
+		    char *key;
         QueueNode *head;
         QueueNode *tail;
-        KeyAndValue *next;
-	} KeyAndValue;
+        struct KAV *next;
+	};
+
+  typedef struct KAV KeyAndValue;
 
 	typedef struct {
 		KeyAndValue **data;
@@ -22,9 +26,10 @@
         int b;
 	} HashMap;
 
-    int hashCode(HashMap *hash, int key);
-    void HashCreate(HashMap *array);
-    void HashAdd(HashMap *array,KeyAndValue *value);
+    int HashCode(HashMap *hash, char *key);
+    HashMap HashCreate();
+    void HashAdd(HashMap *array, char *key, struct timespec t_value);
+    void HashPrint(HashMap hash);
     void HashAppend(HashMap *array,HashMap *append);
     int HashFreeIndex(HashMap *array,int index);
     void HashFreeAll(HashMap *array);

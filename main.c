@@ -131,9 +131,8 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 	const struct sniff_ip *ip;              /* The IP header */
 	const struct sniff_tcp *tcp;            /* The TCP header */
 	const char *payload;                    /* Packet payload */
-    struct timespec now;                    /* Time when received a packet*/
 
-    int long time;
+  int long time;
 	int size_ip;
 	int size_tcp;
 	int size_payload;
@@ -152,8 +151,10 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 		return;
 	}
 
-    char *ip_src = inet_ntoa(ip->ip_src);
-    char *ip_dst = inet_ntoa(ip->ip_dst);
+    char *ip_src = malloc(sizeof(char)*50);
+    strcpy(ip_src, inet_ntoa(ip->ip_src));
+    char *ip_dst = malloc(sizeof(char)*50);
+    strcpy(ip_dst, inet_ntoa(ip->ip_dst));
 
 	/* print source and destination IP addresses */
 	printf("       From: %s\n", ip_src);
@@ -170,11 +171,20 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 	}
 
     int src_port = ntohs(tcp->th_sport);
-    int dest_port = ntohs(tcp->th_dport);
+    int dst_port = ntohs(tcp->th_dport);
 
 	printf("   Src port: %d\n", src_port);
-	printf("   Dst port: %d\n", dest_port);
+	printf("   Dst port: %d\n", dst_port);
 
+  char key_value[60];
+
+  sprintf(key_value, "%s -> %s : %d -> %d", ip_src, ip_dst, src_port, dst_port);
+  printf("Prova key: %s\n", key_value);
+
+  struct timespec now;       /* Time when received a packet*/
+  clock_gettime(CLOCK_REALTIME, &now);
+
+  HashAdd(&map, key_value, now);
 
 
 
@@ -222,9 +232,9 @@ int main(int argc, char **argv) {
 	bpf_u_int32 mask;			/* subnet mask */
 	bpf_u_int32 net;			/* ip */
 	int num_packets;			/* number of packets to capture */
-    map = HashCreate();
-    map.a = a;
-    map.b = b;
+  map = HashCreate();
+  map.a = a;
+  map.b = b;
 
 
 
@@ -311,7 +321,7 @@ int main(int argc, char **argv) {
 	pcap_close(handle);
 
 	printf("\nCapture complete.\n");
-
+  HashPrint(map);
 
 return 0;
 }

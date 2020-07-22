@@ -1,36 +1,51 @@
 #include "hashmap.h"
-#include "time.h"
+#include <time.h>
+#include <string.h>
+#include <stdio.h>
 #define P 999149
 
-// create hashmap with size of 10
+// create hashmap with size of 50
 HashMap HashCreate() {
 	HashMap hash;
 	hash.size = 50;
-	hash.data = malloc(sizeof(KeyAndValue*) * hash->size);
+	hash.data = (KeyAndValue**)malloc(sizeof(KeyAndValue*) * hash.size);
+	for(int i=0; i<hash.size; i++){
+		hash.data[i] = (KeyAndValue*)malloc(sizeof(KeyAndValue));
+		(hash.data[i])->key = NULL;
+		(hash.data[i])->head = NULL;
+		(hash.data[i])->tail = NULL;
+		(hash.data[i])->next = NULL;
+	}
+
 	return hash;
 }
 
 // function hash
-int HashCode(HashMap *hash, void* key) {
-   return (((key*hash->a) + hash->b) % P) % hash->size;
+int HashCode(HashMap *hash, char *key) {
+   return (((atoi(key)*hash->a) + hash->b) % P) % hash->size;
 }
 
 // add the new value in the HashMap
-void HashAdd(HashMap *hash,void *key, void *t_value) {
+void HashAdd(HashMap *hash,char *key, struct timespec t_value) {
 	int index = HashCode(hash , key);
+	printf("indice inserimento: %d\n", index);
+	//Inserisco nuovo elemento nel hashmap che non c'era
 	if(hash->data[index]->key == NULL){
+		printf("Sto inserendo nuovo elemento\n");
 		QueueNode *new = malloc(sizeof(QueueNode));
 		new->info = t_value;
 		new->next = NULL;
-		KeyAndValue newKey;
-		newKey.key = key;
-		newKey.head = new;
-		newKey.tail = new;
-		newKey.next = NULL;
-		hash->data[index] = &newKey;
+		hash->data[index]->key = malloc(sizeof(char)*50);
+		strcpy(hash->data[index]->key, key);
+		hash->data[index]->head = new;
+		hash->data[index]->tail = new;
+		hash->data[index]->next = NULL;
+
 	}
-	else if(hash->data[index]->key == key){
+	//Comunicazione gia rilevata aggiungo nuovo timespec
+	else if(strcmp(hash->data[index]->key, key) == 0){
 		// add only new data in the queue
+		printf("Sto inserendo nuovo timespec elemento\n");
 		QueueNode *new = malloc(sizeof(QueueNode));
 		new->info = t_value;
 		new->next = NULL;
@@ -40,9 +55,26 @@ void HashAdd(HashMap *hash,void *key, void *t_value) {
 	}
 	else{
 		// check if key is in the queue, and manage the conflict
+		printf("Conflitto\n");
 		KeyAndValue *aux = hash->data[index]->next;
+		if(aux == NULL){
+			printf("Secondo valore\n");
+			QueueNode *new = malloc(sizeof(QueueNode));
+			new->info = t_value;
+			new->next = NULL;
+			KeyAndValue *newKey = malloc(sizeof(KeyAndValue));
+			newKey->key = malloc(sizeof(char)*50);
+			strcpy(newKey->key, key);
+			newKey->head = new;
+			newKey->tail = new;
+			newKey->next = NULL;
+			aux = newKey; // ???
+			//hash->data[index]->next = aux;
+			return;
+		}
 		while( aux->next != NULL ){
-			if(aux->key == key){
+			if(strcmp(aux->key, key) == 0){
+				printf("QUI CI ARRIVO 1\n");
 				QueueNode *new = malloc(sizeof(QueueNode));
 				new->info = t_value;
 				new->next = NULL;
@@ -51,7 +83,8 @@ void HashAdd(HashMap *hash,void *key, void *t_value) {
 			}
 			aux = aux->next;
 		}
-		if(aux->key == key){
+		if(strcmp(aux->key, key) == 0){
+			printf("QUI CI ARRIVO 2\n");
 				QueueNode *new = malloc(sizeof(QueueNode));
 				new->info = t_value;
 				new->next = NULL;
@@ -59,15 +92,16 @@ void HashAdd(HashMap *hash,void *key, void *t_value) {
 				return;
 		}
 
+		printf("QUI CI ARRIVO 3\n");
 		QueueNode *new = malloc(sizeof(QueueNode));
 		new->info = t_value;
 		new->next = NULL;
-		KeyAndValue newKey;
-		newKey.key = key;
-		newKey.head = new;
-		newKey.tail = new;
-		newKey.next = NULL;
-		aux->next = &newKey;
+		aux->next = malloc(sizeof(KeyAndValue));
+		aux->next->key = malloc(sizeof(char)*50);
+		strcpy(aux->next->key, key);
+		aux->next->head = new;
+		aux->next->tail = new;
+		aux->next->next = NULL;
 	}
 
 }
@@ -100,14 +134,14 @@ void HashFreeAll(HashMap *hash) {
 }
 
 void HashPrint(HashMap hash){
-	printf("\n\n		Valori nella tabella Hash:\n")
+	printf("\n		Valori nella tabella Hash:\n");
 	for(int i=0; i<hash.size; i++){
-		KeyAndValue *item = hash->data[i];
+		KeyAndValue *item = hash.data[i];
 		while( item != NULL){
-			QueueNode aux = item.head;
-			printf("	key: %s ---->\n", item.key);
+			QueueNode *aux = item->head;
+			printf("	index: %d, key: %s ---->\n",i ,item->key);
 			while( aux != NULL){
-				printf("value: %ld\n", aux->info);
+				printf("value: %ld(s), %ld(ns)\n", aux->info.tv_sec, aux->info.tv_nsec);
 				aux = aux->next;
 			}
 			item = item->next;

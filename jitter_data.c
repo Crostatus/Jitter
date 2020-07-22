@@ -13,7 +13,7 @@
 
 int add_to_stream(tcp_stream *stream, char *stream_name, long int packet_arrive_time);
 int add_new_stream(tcp_stream *stream, char *stream_name, long int packet_arrive_time);
-void add_packet_record(record *head, record *tail, long int packet_arrive_time);
+void add_packet_record(record **head, record **tail, long int packet_arrive_time);
 
 tcp_stream* streams_map;
 
@@ -55,7 +55,7 @@ int add_to_stream(tcp_stream *stream, char *stream_name, long int packet_arrive_
 		stream = stream->next_conflict;
 	}
 	if(strcmp(stream->stream_name, stream_name) == 0){
-		add_packet_record(stream->head, stream->tail, packet_arrive_time);
+		add_packet_record(&stream->head, &stream->tail, packet_arrive_time);
 		return 1;
 	} else if(stream->next_conflict == NULL){
 			//nuovo stream da monitorare!
@@ -67,7 +67,7 @@ int add_to_stream(tcp_stream *stream, char *stream_name, long int packet_arrive_
 			new_stream->head = NULL;
 			new_stream->tail = NULL;
 			new_stream->next_conflict = NULL;
-			add_packet_record(new_stream->head, new_stream->tail, packet_arrive_time);
+			add_packet_record(&new_stream->head, &new_stream->tail, packet_arrive_time);
 			return 1;
 	}
 	else
@@ -77,22 +77,22 @@ int add_to_stream(tcp_stream *stream, char *stream_name, long int packet_arrive_
 int add_new_stream(tcp_stream *stream, char *stream_name, long int packet_arrive_time){
 	stream->stream_name = stream_name;
 	stream->pkts_num = stream->pkts_num + 1;
-	add_packet_record(stream->head, stream->tail, packet_arrive_time);
+	add_packet_record(&stream->head, &stream->tail, packet_arrive_time);
 	return 1;
 }
 
-void add_packet_record(record *head, record *tail, long int packet_arrive_time){
-	if(head == NULL){
-		head = malloc(sizeof(record));
-		head->next = NULL;
+void add_packet_record(record **head, record **tail, long int packet_arrive_time){
+	if(*head == NULL){
+		*head = (record *) malloc(sizeof(record));
+		(*head)->next = NULL;
 		tail = head;
-		head->time = 0;
+		(*head)->time = 0;
 	}
 	else{
-		record *new_el = malloc(sizeof(record));
-		new_el->time = packet_arrive_time - head->time;
-		new_el->next = head;
-		head = new_el;
+		record *new_el = (record *) malloc(sizeof(record));
+		new_el->time = packet_arrive_time - (*head)->time;
+		new_el->next = *head;
+		*head = new_el;
 	}
 	return;
 }
@@ -114,16 +114,17 @@ typedef struct tcp_stream{
 void print_stream(tcp_stream *str){
 	if(str->stream_name == NULL)
 		return;
-	printf("\n\n   Comunication: %s\n", str->stream_name);
+	printf("\n   Comunication: %s\n", str->stream_name);
 	printf("         Jitter: %.3f\n", str->jitter);
-	printf("Packets sniffed: %d", str->pkts_num);
+	printf("Packets sniffed: %d [\n", str->pkts_num);
 	record *tmp_r = str->head;
 	int packet_num = 1;
 	while(tmp_r != NULL){
-		printf("Packet %d :arrived at time %ld\n", packet_num, tmp_r->time);
+		printf("                    Packet %d arrived at time %ld;\n", packet_num, tmp_r->time);
 		packet_num++;
 		tmp_r = tmp_r->next;
 	}
+	printf("                   ]\n");
 	return;
 }
 

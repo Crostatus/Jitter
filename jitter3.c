@@ -12,6 +12,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <signal.h>
+#include "time_tools.h"
+#include "jitter_data.h"
 
 /* default snap length (maximum bytes per packet to capture) */
 #define SNAP_LEN 1518
@@ -107,7 +109,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 	int size_tcp;
 	int size_payload;
 
-	printf("\nPacket number %d:\n", count);
+	printf("\nSniffed %d packets.\n", count);
 	count++;
 
 	/* define ethernet header */
@@ -120,10 +122,6 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 		printf("   * Invalid IP header length: %u bytes\n", size_ip);
 		return;
 	}
-	/* print source and destination IP addresses */
-	printf("       From: %s\n", inet_ntoa(ip->ip_src));
-	printf("         To: %s\n", inet_ntoa(ip->ip_dst));
-	printf("   Protocol: TCP\n");
 
 	/* define/compute tcp header offset */
 	tcp = (struct sniff_tcp*)(packet + SIZE_ETHERNET + size_ip);
@@ -133,8 +131,17 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 		return;
 	}
 
-	printf("   Src port: %d\n", ntohs(tcp->th_sport));
-	printf("   Dst port: %d\n", ntohs(tcp->th_dport));
+	char *ip_src_string = malloc(sizeof(char) * 50);
+	char *ip_dst_string = malloc(sizeof(char) * 50);
+	strcpy(ip_src_string, inet_ntoa(ip->ip_src));
+	strcpy(ip_dst_string, inet_ntoa(ip->ip_dst));
+	int  src_port = ntohs(tcp->th_sport);
+	int  dst_port = ntohs(tcp->th_dport);
+	struct timespec now = update_timespec();
+
+	char *stream_name = (char *) malloc(sizeof(char) * 60);
+	sprintf(stream_name, "Ip: %s -> %s | Ports: %d -> %d", ip_src_string, ip_dst_string, src_port, dst_port);
+	add_record(stream_name, timespec_to_millis(now));
 
 return;
 }
@@ -255,7 +262,7 @@ int main(int argc, char **argv) {
 		    filter_exp, pcap_geterr(handle));
 		exit(EXIT_FAILURE);
 	}
-
+	initialize_map();
 	/* now we can set our callback function */
 	pcap_loop(handle, num_packets, got_packet, NULL);
 
@@ -264,6 +271,7 @@ int main(int argc, char **argv) {
 	pcap_close(handle);
 
 	printf("\nCapture complete.\n");
+	print_map();
 
 return 0;
 }

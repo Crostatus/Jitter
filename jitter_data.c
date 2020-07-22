@@ -1,7 +1,9 @@
+#include "jitter_data.h"
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <stdlib.h>
+
 
 #define SIZE 30
 #define A 999
@@ -9,27 +11,14 @@
 #define P 999149
 #define HASH(s) ((atoi(s) * A + B) % P) % SIZE
 
-typedef struct record{
-	long int time;
-	struct record *next;
-} record;
-
-typedef struct tcp_stream{
-	unsigned int jitter;
-	char *stream_name;
-	unsigned int pkts_num;
-	record *head;
-	record *tail;
-	struct tcp_stream *next_conflict;
-} tcp_stream;
-
 int add_to_stream(tcp_stream *stream, char *stream_name, long int packet_arrive_time);
 int add_new_stream(tcp_stream *stream, char *stream_name, long int packet_arrive_time);
-void add_packet_record(record *head, record *tail, unsigned int pkts_num, long int packet_arrive_time);
+void add_packet_record(record *head, record *tail, long int packet_arrive_time);
 
-tcp_stream streams_map[SIZE];
+tcp_stream* streams_map;
 
 void initialize_map() {
+	streams_map = (tcp_stream *) malloc(sizeof(tcp_stream) * SIZE);
 	int i;
 	tcp_stream *tmp;
 	for(i = 0; i < SIZE; i++){
@@ -41,7 +30,6 @@ void initialize_map() {
 		tmp->tail = NULL;
 		tmp->next_conflict = NULL;
 	}
-
 return;
 }
 
@@ -63,24 +51,37 @@ int add_record(char *stream_name, long int packet_arrive_time){
 }
 
 int add_to_stream(tcp_stream *stream, char *stream_name, long int packet_arrive_time){
-	while(strcmp(stream->name, stream_name) || stream->next_conflict == NULL){
-		stream = stream->next-conflict;
+	while(strcmp(stream->stream_name, stream_name) != 0 && stream->next_conflict != NULL){
+		stream = stream->next_conflict;
 	}
-
-
-
-
-
+	if(strcmp(stream->stream_name, stream_name) == 0){
+		add_packet_record(stream->head, stream->tail, packet_arrive_time);
+		return 1;
+	} else if(stream->next_conflict == NULL){
+			//nuovo stream da monitorare!
+			stream->next_conflict = (tcp_stream *) malloc(sizeof(tcp_stream));
+			tcp_stream *new_stream = stream->next_conflict;
+			new_stream->stream_name = stream_name;
+			new_stream->jitter = 0;
+			new_stream->pkts_num = 1;
+			new_stream->head = NULL;
+			new_stream->tail = NULL;
+			new_stream->next_conflict = NULL;
+			add_packet_record(new_stream->head, new_stream->tail, packet_arrive_time);
+			return 1;
+	}
+	else
+		return -1;
 }
 
 int add_new_stream(tcp_stream *stream, char *stream_name, long int packet_arrive_time){
 	stream->stream_name = stream_name;
 	stream->pkts_num = stream->pkts_num + 1;
-	add_packet_record(stream->head, stream->tail,stream->pkts_num, packet_arrive_time);
+	add_packet_record(stream->head, stream->tail, packet_arrive_time);
 	return 1;
 }
 
-void add_packet_record(record *head, record *tail, unsigned int pkts_num, long int packet_arrive_time){
+void add_packet_record(record *head, record *tail, long int packet_arrive_time){
 	if(head == NULL){
 		head = malloc(sizeof(record));
 		head->next = NULL;
@@ -89,9 +90,53 @@ void add_packet_record(record *head, record *tail, unsigned int pkts_num, long i
 	}
 	else{
 		record *new_el = malloc(sizeof(record));
-		new_el->time = packet_arrive_time - tail->time;
-		tail->next = new_el;
-		tail = tail->next;
+		new_el->time = packet_arrive_time - head->time;
+		new_el->next = head;
+		head = new_el;
 	}
+	return;
+}
+/*
+typedef struct record{
+	long int time;
+	struct record *next;
+} record;
 
+typedef struct tcp_stream{
+	float jitter;
+	char *stream_name;
+	unsigned int pkts_num;
+	record *head;
+	record *tail;
+	struct tcp_stream *next_conflict;
+} tcp_stream;*/
+
+void print_stream(tcp_stream *str){
+	if(str->stream_name == NULL)
+		return;
+	printf("\n\n   Comunication: %s\n", str->stream_name);
+	printf("         Jitter: %.3f\n", str->jitter);
+	printf("Packets sniffed: %d", str->pkts_num);
+	record *tmp_r = str->head;
+	int packet_num = 1;
+	while(tmp_r != NULL){
+		printf("Packet %d :arrived at time %ld\n", packet_num, tmp_r->time);
+		packet_num++;
+		tmp_r = tmp_r->next;
+	}
+	return;
+}
+
+void print_map(void){
+	printf("Recorded streams:\n");
+	int i;
+	tcp_stream *tmp;
+	for(i = 0; i < SIZE; i++){
+		tmp = &streams_map[i];
+		while(tmp != NULL){
+			print_stream(tmp);
+			tmp = tmp->next_conflict;
+		}
+	}
+	return;
 }

@@ -4,7 +4,7 @@
     #include <time.h>
 
     typedef struct{
-        struct timespec info;
+        void *info;
         struct QueueNode *next;
     } QueueNode;
 
@@ -12,7 +12,7 @@
 		void *key;
         QueueNode *head;
         QueueNode *tail;
-        KeyAndValue *next;
+        struct KeyAndValue *next;
 	} KeyAndValue;
 
 	typedef struct {
@@ -22,9 +22,10 @@
         int b;
 	} HashMap;
 
-    int hashCode(HashMap *hash, int key);
-    void HashCreate(HashMap *array);
-    void HashAdd(HashMap *array,KeyAndValue *value);
+    int HashCode(HashMap *hash, int key);
+    void HashCreate();
+    void HashAdd(HashMap *array, void *key, void*value);
+    void HashPrint(HashMap hash);
     void HashAppend(HashMap *array,HashMap *append);
     int HashFreeIndex(HashMap *array,int index);
     void HashFreeAll(HashMap *array);
@@ -33,6 +34,6 @@
     void *HashGetKey(HashMap *array,void *value);
     KeyAndValue *HashGetWithValue(HashMap *array,void *value);
     void *HashGetValue(HashMap *array,void *key);*/
-   
+
 
 #endif

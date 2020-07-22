@@ -96,20 +96,6 @@ void add_packet_record(record **head, record **tail, long int packet_arrive_time
 	}
 	return;
 }
-/*
-typedef struct record{
-	long int time;
-	struct record *next;
-} record;
-
-typedef struct tcp_stream{
-	float jitter;
-	char *stream_name;
-	unsigned int pkts_num;
-	record *head;
-	record *tail;
-	struct tcp_stream *next_conflict;
-} tcp_stream;*/
 
 void print_stream(tcp_stream *str){
 	if(str->stream_name == NULL)

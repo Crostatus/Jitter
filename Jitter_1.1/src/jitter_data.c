@@ -64,9 +64,9 @@ int add_to_stream(tcp_stream *stream, char *stream_name, long int packet_arrive_
 		difference = add_packet_record(&stream->head, &stream->tail, packet_arrive_time);
 		stream->sum_difference += difference;
 		stream->jitter = stream->sum_difference / (stream->pkts_num-1);
-		printf("\n   Comunication: %s\n", str->stream_name);
-		printf("         Jitter(ms): %.3f\n", str->jitter);
-		printf("Packets sniffed: %d [\n", str->pkts_num);
+		printf("\n   Comunication: %s\n", stream->stream_name);
+		printf("         Jitter(ms): %.3f\n", stream->jitter);
+		printf("Packets sniffed: %d [\n", stream->pkts_num);
 		printf("                   ]\n");
 		return 1;
 	} else if(stream->next_conflict == NULL){

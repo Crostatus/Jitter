@@ -23,3 +23,4 @@ extern tcp_stream* streams_map;
 extern void initialize_map(void);
 extern int add_record(char *stream_name, long int packet_arrive_time);
 extern void print_map(void);
+extern void free_map(void);

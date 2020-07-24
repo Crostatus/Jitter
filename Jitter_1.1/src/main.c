@@ -103,11 +103,9 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 	const struct sniff_ethernet *ethernet;  /* The ethernet header [1] */
 	const struct sniff_ip *ip;              /* The IP header */
 	const struct sniff_tcp *tcp;            /* The TCP header */
-	const char *payload;                    /* Packet payload */
 
 	int size_ip;
 	int size_tcp;
-	int size_payload;
 
 	printf("\nSniffed %d packets.\n", count);
 	count++;
@@ -142,6 +140,12 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 	char *stream_name = (char *) malloc(sizeof(char) * 60);
 	sprintf(stream_name, "Ip: %s -> %s | Ports: %d -> %d", ip_src_string, ip_dst_string, src_port, dst_port);
 	add_record(stream_name, timespec_to_millis(now));
+  free(ip_src_string);
+  free(ip_dst_string);
+  //free(stream_name);
+  /*free(ethernet);
+  free(ip);
+  free(tcp);*/
 
 return;
 }
@@ -160,6 +164,7 @@ void sig_handler(int signo){
 void print_capture_info(char *device, int num_packets, char *filter_exp){
 	if(device == NULL || filter_exp == NULL){
 		fprintf(stderr, "Method: print_capture_info    Error: NULL device or filter_exp string.  (unexpected arguments)\n");
+    exit(EXIT_FAILURE);
 	}
 	printf("Device:            %s\n", device);
 	if(num_packets > 0)
@@ -179,7 +184,6 @@ int main(int argc, char **argv) {
 	}
 
   pcap_if_t *dev_list;
-	char *dev = NULL;			/* capture device name */
 	char errbuf[PCAP_ERRBUF_SIZE];		/* error buffer */
 
 	char filter_exp[] = "tcp[tcpflags] & (tcp-syn) != 0";		/* filter expression [3] */
@@ -272,6 +276,9 @@ int main(int argc, char **argv) {
 
 	printf("\nCapture complete.\n");
 	print_map();
+  //free(handle);
+  free(dev_list);
+  free_map();
 
 return 0;
 }

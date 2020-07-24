@@ -145,3 +145,35 @@ void print_map(void){
 	}
 	return;
 }
+
+
+// free stream memory
+void free_stream(tcp_stream *str) {
+	if(str->stream_name == NULL)
+		return;
+	record *tmp_r = str->head;
+	while(tmp_r != NULL){
+		str->head = str->head->next;
+		free(tmp_r);
+		tmp_r = str->head;
+	}
+	return;
+}
+
+// free all memory of the hashmap
+void free_map(void) {
+	tcp_stream *tmp, *aux;
+	int i;
+	for(i = 0; i < SIZE; i++)
+		tmp = &streams_map[i];
+		while(tmp != NULL){
+			free_stream(tmp);
+			free(tmp->stream_name);
+			free(tmp->head);
+			free(tmp->tail);
+			aux = tmp->next_conflict;
+			free(tmp->next_conflict);
+			tmp = aux;
+		}
+		return;
+}

@@ -22,7 +22,7 @@ In this text we will try to cover and explain the essential components of this p
   test1: execute the executable file and wait 50 packets to terminate
   test2: execute the executable file and wait for SIGINT signal to terminate
 
-  for clean the .o file, executable file and the library file do
+  for clean the .o file, executable file and the library file do:
     make clean
 
  ## Project structure

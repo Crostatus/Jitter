@@ -5,7 +5,7 @@ LDFLAGS = -L ./lib
 obj = ./src/main.c ./lib/libbt.so
 TARGET = ./bin/myprog
 
-.PHONY: all test1 clean
+.PHONY: all test2 clean
 
 ./bin/myprog : $(obj)
 	$(CC) -lpcap $(CFLAGS) $^ -I ./include -o $@ $(LDFLAGS) -lbt
@@ -26,9 +26,9 @@ test1:	./bin/myprog
 	sudo ./bin/myprog 50
 	@echo "Test1 OK"
 
-test2:	./bin/myprog
+test2:	./bin/myprog #valgrind --leak-check=full
 	@echo "Eseguo il test2, mandare SIGINT per interrompere"
-	sudo ./bin/myprog
+	sudo valgrind --track-origins=yes ./bin/myprog
 	@echo "Test2 OK"
 
 clean:

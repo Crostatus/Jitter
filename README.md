@@ -1,7 +1,8 @@
-# Jitter  
-## A simple network monitoring tool 
-
-**Disclaimer:** *this program is not for professional use. It has been written only for educational pourpose, as an assignment project for the Network Management course at [Unipi](https://di.unipi.it/).*
+# Jitter - a simple network monitoring tool        
+![GitHub repo size](https://img.shields.io/github/repo-size/Crostatus/Jitter)
+ 
+ ## Introduction   
+ **Disclaimer:** *this program is not for professional use. It has been written only for educational pourpose, as an assignment project for the Network Management course at [Unipi](https://di.unipi.it/).*
 
 This is a sniffer example using [libpcap](https://www.tcpdump.org/manpages/pcap.3pcap.html) to analyze the comunication frequency of TCP streams.    
 libpcap is a portable C/C++ library for network traffic capture. ([GitHub repository](https://github.com/the-tcpdump-group/libpcap))
@@ -10,9 +11,10 @@ libpcap is a portable C/C++ library for network traffic capture. ([GitHub reposi
 
 The aim of this program is to see the jitter of TCP comunications happening from/to the host machine, and detect suspicious jitter variation. 
 In this text we will try to cover and explain the essential components of this program and how it works in the following order: 
- 1. **Project structure**
- 2. **Program usage**
- 3. **[WIP] list under construction**
+ 1. **[Project structure](#project-structure)**
+ 2. **How to build it**
+ 3. **Program usage**
+ 4. **[WIP] list under construction**
  
  ## Project structure
- *Work in progress <3*
+

@@ -1,5 +1,5 @@
 # Jitter - a simple network monitoring tool        
-![GitHub repo size](https://img.shields.io/github/repo-size/Crostatus/Jitter)
+![GitHub repo size](https://img.shields.io/github/repo-size/Crostatus/Jitter) ![GitHub](https://img.shields.io/github/license/Crostatus/Jitter)
  
  ## Introduction   
  **Disclaimer:** *this program is not for professional use. It has been written only for educational pourpose, as an assignment project for the Network Management course at [Unipi](https://di.unipi.it/).*

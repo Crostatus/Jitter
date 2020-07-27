@@ -17,4 +17,17 @@ In this text we will try to cover and explain the essential components of this p
  4. **[WIP] list under construction**
  
  ## Project structure
+This is a quite small project, but it's never a bad idea to give a general overview for a better file exploration.     
+📁bin    
+&nbsp;&nbsp;&nbsp;&nbsp; ⚙️jitter &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *executable file*
 
+📁headers    
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📃jitter_data.h    
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📃time_tools.h    
+
+📁src    
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📃jitter.c &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *main packet capture loop*   
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📃jitter_data.c &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *data structure to store sniffed packets*    
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📃time_tools.c  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *implements time related methods (e.g get elapsed time)*  
+
+🛠️Makefile &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *project builder*

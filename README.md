@@ -12,8 +12,8 @@ libpcap is a portable C/C++ library for network traffic capture. ([GitHub reposi
 The aim of this program is to see the jitter of TCP comunications happening from/to the host machine, and detect suspicious jitter variation. 
 In this text we will try to cover and explain the essential components of this program and how it works in the following order: 
  1. **[Project structure](#project-structure)**
- 2. **How to build it**
- 3. **Program usage**
+ 2. **[How to build it](#how-to-build-it)**
+ 3. **[Program usage](#program-usage)**
  4. **[WIP] list under construction**
  
  ## Project structure
@@ -30,4 +30,15 @@ This is a quite small project, but it's never a bad idea to give a general overv
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📃jitter_data.c &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *data structure to store sniffed packets*    
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📃time_tools.c  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *implements time related methods (e.g get elapsed time)*  
 
-🛠️Makefile &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *project builder*
+🛠️Makefile &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *project builder*    
+
+## How to build it
+In order to compile this project, you need to have [libpcap](https://github.com/the-tcpdump-group/libpcap) (*version >= 1.9.1-3*) installed.    
+One way to easily get in, **on Ubuntu**, is to use the following command:    
+`sudo apt-get install libpcap-dev`    
+To check your current version:    
+`apt-cache show libpcap-dev`    
+    
+That's it! Now you can use the Makefile to get everything done, just run `make` in the project folder and you are ready to go.     
+
+## Program usage    

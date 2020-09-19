@@ -12,6 +12,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <signal.h>
+#include <string.h>
+#include "gnuplot_i.h"
 #include "time_tools.h"
 #include "jitter_data.h"
 
@@ -75,11 +77,51 @@ struct sniff_tcp {
         u_short th_urp;                 /* urgent pointer */
 };
 
+extern anomaly_list *a_list;
+
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
 
 void print_app_banner(void);
 
 void print_app_usage(void);
+
+void print_graphic(){
+    printf("Insert ip source and ip destination, Example: 'Ip-10.0.2.15-99.86.47.11\n");
+    char file_name[40];
+    int i=0;
+    FILE *f;
+    char aux[121], *token;
+    double d[40], index[40];
+    gnuplot_ctrl * h;
+    h = gnuplot_init();
+
+    scanf("%s", file_name);
+    strcat(file_name, ".txt");
+    f = fopen (file_name,"r");
+    if(f == NULL) {
+        perror("Error opening file");
+        return;
+    }
+    gnuplot_setstyle(h, "lines");
+    while(fgets(aux, 120, f) != NULL) {
+        token = strtok(aux, " ");
+        d[i] = i;
+
+        token = strtok(NULL, " ");
+        index[i] = atof(token);
+        printf("time: %le(double) or %d(int), jiter: %le(double) or %d(int)\n", d[i], (int)d[i], index[i], (int)index[i]);
+        i++;
+    }
+
+
+    gnuplot_cmd(h, "set term x11 persist");
+    strcat(file_name, ": Jitter Comunication");
+    gnuplot_plot_xy(h, d, index, i-1,file_name);
+    gnuplot_close(h);
+}
+
+
+
 
 void print_app_banner(void){
 	printf("%s - %s\n", APP_NAME, APP_DESC);
@@ -138,7 +180,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 	struct timespec now = update_timespec();
 
 	char *stream_name = (char *) malloc(sizeof(char) * 60);
-	sprintf(stream_name, "Ip: %s -> %s", ip_src_string, ip_dst_string);
+	sprintf(stream_name, "Ip-%s-%s", ip_src_string, ip_dst_string);
 	add_record(stream_name, timespec_to_millis(now), src_port, dst_port);
 
 return;
@@ -176,7 +218,8 @@ int main(int argc, char **argv) {
 			exit(EXIT_FAILURE);
 	}
 
-  pcap_if_t *dev_list;
+    pcap_if_t *dev_list;
+
 	char errbuf[PCAP_ERRBUF_SIZE];		/* error buffer */
 
 	char filter_exp[] = "tcp[tcpflags] & (tcp-syn) != 0";		/* filter expression */
@@ -184,6 +227,8 @@ int main(int argc, char **argv) {
 	bpf_u_int32 mask;			/* subnet mask */
 	bpf_u_int32 net;			/* ip */
 	int num_packets;			/* number of packets to capture */
+    struct timespec now = update_timespec();
+    long int start = timespec_to_millis(now);
 
 	print_app_banner();
 
@@ -267,8 +312,34 @@ int main(int argc, char **argv) {
 	pcap_freecode(&fp);
 	pcap_close(handle);
 
-	printf("\nCapture complete.\n");
+	printf("\nCapture complete.\n\n");
+    save_map(start);
 	print_map();
+    print_anomaly_list();
+    int comando = 1;
 
-return 0;
+    while(comando != 0 ){
+        printf("\n******USER MENU******\n 0: exit\n 1: draw jitter graphic\n 2: print anomaly list\n 3: print connections list\n");
+        scanf("%d", &comando);
+
+        switch (comando) {
+            case 0:
+                return 0;
+                break;
+            case 1:
+                print_graphic();
+                break;
+            case 2:
+                print_anomaly_list();
+                break;
+            case 3:
+                print_map();
+                break;
+            default:
+                printf("Insert correct command\n");
+                break;
+        }
+    }
+
+    return 0;
 }

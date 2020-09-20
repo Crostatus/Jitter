@@ -13,8 +13,9 @@ The aim of this program is to see the jitter of TCP comunications happening from
 In this text we will try to cover and explain the essential components of this program and how it works in the following order: 
  1. **[Project structure](#project-structure)**
  2. **[How to build it](#how-to-build-it)**
- 3. **[Program usage](#program-usage)**
- 4. **[WIP] list under construction**
+ 3. **[Program usage](#program-usage)**    
+  
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**[Credits](#credits)**
  
  ## Project structure
 This is a quite small project, but it's never a bad idea to give a general overview for a better file exploration.     
@@ -33,12 +34,30 @@ This is a quite small project, but it's never a bad idea to give a general overv
 🛠️Makefile &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *project builder*    
 
 ## How to build it
-In order to compile this project, you need to have [libpcap](https://github.com/the-tcpdump-group/libpcap) (*version >= 1.9.1-3*) installed.    
-One way to easily get in, **on Ubuntu**, is to use the following command:    
-`sudo apt-get install libpcap-dev`    
+In order to compile this project, you need to have [libpcap](https://github.com/the-tcpdump-group/libpcap) (*v 1.9.1-3 or newer*) and [gnuplot](http://www.gnuplot.info/) (*v 5.2 or newer*) installed.    
+One way to easily get it, **on Ubuntu**, is to use the following commands:    
+`sudo apt-get install libpcap-dev`&nbsp;&nbsp;&nbsp;`sudo apt-get install gnuplot`    
+
 To check your current version:    
-`apt-cache show libpcap-dev`    
+`apt-cache show libpcap-dev` &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`gnuplot-V`
     
 That's it! Now you can use the Makefile to get everything done, just run `make` in the project folder and you are ready to go.     
 
-## Program usage    
+## Program usage
+This program, once started, can capture packets *endlessly* or *stop once a default amount has been reached*. 
+Those two ways to run can are determined by the value of the only parameter that this program accepts:
+
+|NAME                |TYPE                       |OPTIONAL                         |
+|----------------|-------------------------------|-----------------------------|
+|packet_number|Non negative integer            |yes         |
+
+**Examples**:    
+Running `sudo ./bin/jitter 50` will stop after capturing the next 50 packets.    
+If no **packet_number** is provided, so just running `sudo ./bin/jitter` will start sniffing non-stop.
+
+**In both cases** it can be correctly stopped sending a **SIGINT** (*Ctlr + c*) interruption to this process.
+
+Once that the sniffing has stopped, a very simple menu will show up to see the collected data.    
+
+## Credits    
+This little project has been a fun experience made as a team by @alexnicco98, @Elkosta and @Crostatus.  🍻  

@@ -29,7 +29,7 @@ test:	./bin/jitter
 
 test1:	./bin/myprog
 	@echo "Eseguo il test1, catturo 50 pacchetti"
-	sudo ./bin/myprog 50
+	sudo ./bin/jitter 50
 	@echo "Test1 OK"
 
 clean:

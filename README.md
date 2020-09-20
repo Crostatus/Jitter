@@ -2,7 +2,7 @@
 ![GitHub repo size](https://img.shields.io/github/repo-size/Crostatus/Jitter) ![GitHub](https://img.shields.io/github/license/Crostatus/Jitter) ![GitHub top language](https://img.shields.io/github/languages/top/Crostatus/Jitter?color=red)
  
  ## Introduction   
- **Disclaimer:** *this program is not for professional use. It has been written only for educational pourpose, as an assignment project for the Network Management course at [Unipi](https://di.unipi.it/).*
+ **Disclaimer:** *this program is not for professional use. It has been written only for educational purpose, as an assignment project for the Network Management course at [Unipi](https://di.unipi.it/).*
 
 This is a sniffer example using [libpcap](https://www.tcpdump.org/manpages/pcap.3pcap.html) to analyze the comunication frequency of TCP streams.    
 libpcap is a portable C/C++ library for network traffic capture. ([GitHub repository](https://github.com/the-tcpdump-group/libpcap))

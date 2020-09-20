@@ -9,7 +9,7 @@ libpcap is a portable C/C++ library for network traffic capture. ([GitHub reposi
 
 **What does the jitter measure?** The jitter is defined as the *variation* in the delay (or latency) of received packets.
 
-This program aims to see the jitter of TCP comunications happening from/to the host machine, and detect suspicious jitter variation. 
+This program aims to see the jitter of TCP comunications happening from/to the host machine, and detects suspicious jitter variation. 
 In this text we will try to cover and explain the essential components of this program and how it works in the following order: 
  1. **[Project structure](#project-structure)**
  2. **[How to build it](#how-to-build-it)**

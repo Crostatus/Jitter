@@ -60,4 +60,4 @@ If no **packet_number** is provided, so just running `sudo ./bin/jitter` will st
 Once that the sniffing has stopped, a very simple menu will show up to see the collected data.    
 
 ## Credits    
-This little project has been a fun experience made as a team by @alexnicco98, @Elkosta and @Crostatus.  🍻  
+This little project has been a fun experience made as a team by [Alessandro Niccolini](https://github.com/alexnicco98), [Kostantino Pirfti](https://github.com/Elkosta) and [Andrea Boccone](https://github.com/Crostatus).  🍻  

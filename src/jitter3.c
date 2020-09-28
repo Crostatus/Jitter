@@ -144,7 +144,6 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 	static int count = 1;                   /* packet counter */
 
 	/* declare pointers to packet headers */
-	//const struct sniff_ethernet *ethernet;  /* The ethernet header [1] */
 	const struct sniff_ip *ip;              /* The IP header */
 	const struct sniff_tcp *tcp;            /* The TCP header */
 
@@ -158,8 +157,6 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 	fflush(stdout);
 	count++;
 
-	/* define ethernet header */
-	//ethernet = (struct sniff_ethernet*)(packet);
 
 	/* define/compute ip header offset */
 	ip = (struct sniff_ip*)(packet + SIZE_ETHERNET);

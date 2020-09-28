@@ -1,4 +1,4 @@
-#define APP_NAME		"Citter"
+#define APP_NAME		"Jitter"
 #define APP_DESC		"A sniffer example using libpcap to analyze the comunication frequency of TCP streams."
 
 #include <pcap.h>
@@ -16,6 +16,7 @@
 #include "gnuplot_i.h"
 #include "time_tools.h"
 #include "jitter_data.h"
+#include "unistd.h"
 
 /* default snap length (maximum bytes per packet to capture) */
 #define SNAP_LEN 1518
@@ -77,6 +78,7 @@ struct sniff_tcp {
         u_short th_urp;                 /* urgent pointer */
 };
 
+int num_packets;			/* number of packets to capture */
 extern anomaly_list *a_list;
 
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
@@ -149,7 +151,11 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 	int size_ip;
 	int size_tcp;
 
-	printf("Sniffed %d packets.\n", count);
+	if(num_packets == 0)
+		printf("\rSniffed packets: %d ", count);
+	else
+		printf("\rSniffed packets: %d / %d", count, num_packets);		
+	fflush(stdout);
 	count++;
 
 	/* define ethernet header */
@@ -180,7 +186,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 	struct timespec now = update_timespec();
 
 	char *stream_name = (char *) malloc(sizeof(char) * 60);
-	sprintf(stream_name, "Ip-%s-%s", ip_src_string, ip_dst_string);
+	sprintf(stream_name, "IP-%s->%s", ip_src_string, ip_dst_string);
 	add_record(stream_name, timespec_to_millis(now), src_port, dst_port);
 
 return;
@@ -197,7 +203,7 @@ void sig_handler(int signo){
 		return;
 }
 
-void print_capture_info(char *device, int num_packets, char *filter_exp){
+void print_capture_info(char *device, char *filter_exp){
 	if(device == NULL || filter_exp == NULL){
 		fprintf(stderr, "Method: print_capture_info    Error: NULL device or filter_exp string.  (unexpected arguments)\n");
 	}
@@ -226,7 +232,7 @@ int main(int argc, char **argv) {
 	struct bpf_program fp;			/* compiled filter program (expression) */
 	bpf_u_int32 mask;			/* subnet mask */
 	bpf_u_int32 net;			/* ip */
-	int num_packets;			/* number of packets to capture */
+	
     struct timespec now = update_timespec();
     long int start = timespec_to_millis(now);
 
@@ -259,7 +265,7 @@ int main(int argc, char **argv) {
 	}
 
 	/* print capture info */
-	print_capture_info(dev_list->name, num_packets, filter_exp);
+	print_capture_info(dev_list->name, filter_exp);
 
 	/* open capture device */
   handle = pcap_create(dev_list->name, errbuf);
@@ -273,7 +279,7 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
 
-  if( pcap_set_immediate_mode( handle, 1 ) != 0 ){
+  if(pcap_set_immediate_mode( handle, 1 ) != 0 ){
 		fprintf(stderr, "Unable to configure immediate mode.\n");
     exit(EXIT_FAILURE);
 	}
@@ -312,7 +318,8 @@ int main(int argc, char **argv) {
 	pcap_freecode(&fp);
 	pcap_close(handle);
 
-	printf("\nCapture complete.\n\n");
+	printf("\n                 Capture completed!\n\n");
+	sleep(2);
     save_map(start);
 	print_map();
     print_anomaly_list();

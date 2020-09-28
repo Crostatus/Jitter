@@ -17,6 +17,7 @@
 #include "time_tools.h"
 #include "jitter_data.h"
 #include "unistd.h"
+#include "ctype.h"
 
 /* default snap length (maximum bytes per packet to capture) */
 #define SNAP_LEN 1518
@@ -122,7 +123,23 @@ void print_graphic(){
     gnuplot_close(h);
 }
 
+int is_number(char *msg){
+    int i = 0;
+    while(i < strlen(msg)){
+        if(!(isdigit(msg[i]))){
+        	return 0;
+        }
+        i++;
+    }
+    return 1;
+}
 
+int is_help_flag(char *msg){
+    if(strcmp("-h", msg) == 0)
+        return 1;
+    else
+        return 0;        
+}
 
 
 void print_app_banner(void){
@@ -139,6 +156,73 @@ void print_app_usage(void) {
 	printf("In both cases until it can be correctly stopped sending a SIGINT interruption to this process.\n");
 return;
 }
+
+void read_params(int argc, char **argv){
+	char param[40];
+    switch(argc){
+		case 1:
+			num_packets = 0;
+			break;
+		case 2:
+            strcpy(param, argv[1]);
+            if(is_help_flag(param)){
+                print_app_usage();
+                num_packets = 0;
+                sleep(2);
+            }
+            else if(is_number(param)){
+                num_packets = atoi(param);
+                if(num_packets < 0){
+                    print_app_usage();
+                    exit(EXIT_FAILURE);
+                }
+            }
+            else{
+                print_app_usage();
+        		exit(EXIT_FAILURE);
+            }
+			break;
+        case 3:{                      
+            strcpy(param, argv[1]);
+            if(is_help_flag(param)){
+                print_app_usage();
+                strcpy(param, argv[2]);
+                if(!is_number(param)){
+                    exit(EXIT_FAILURE); 
+                }
+                num_packets = atoi(param);
+                if(num_packets < 0){
+                    exit(EXIT_FAILURE);
+                }
+                sleep(2);
+                break;
+            }
+            else if(is_number(param)){
+                num_packets = atoi(param);
+                print_app_usage();
+                if(num_packets < 0){
+                    exit(EXIT_FAILURE);
+                }
+                strcpy(param, argv[2]);
+                if(!is_help_flag(param)){
+                    exit(EXIT_FAILURE);      
+                }
+                sleep(2);
+                break;
+            }
+            else {
+                print_app_usage();
+                exit(EXIT_FAILURE);
+            }
+
+        }
+		default:
+			fprintf(stderr, "error: unrecognized command-line arguments\n\n");
+			print_app_usage();
+			exit(EXIT_FAILURE);
+	}
+}
+
 
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
 	static int count = 1;                   /* packet counter */
@@ -236,23 +320,12 @@ int main(int argc, char **argv) {
 	print_app_banner();
 
 	/* check for capture packets number on command-line */
-	switch(argc){
-		case 1:
-			num_packets = 0;
-			break;
-		case 2:
-			num_packets = atoi(argv[1]);
-			break;
-		default:
-			fprintf(stderr, "error: unrecognized command-line arguments\n\n");
-			print_app_usage();
-			exit(EXIT_FAILURE);
-	}
-
-  if(pcap_findalldevs(&dev_list, errbuf) == PCAP_ERROR){
+	read_params(argc, argv);
+	
+	if(pcap_findalldevs(&dev_list, errbuf) == PCAP_ERROR){
     fprintf(stderr, "Couldn't find default device: %s\n", errbuf);
 		exit(EXIT_FAILURE);
-  }
+  	}
 
 	/* get network number and mask associated with capture device */
 	if (pcap_lookupnet(dev_list->name, &net, &mask, errbuf) == -1) {

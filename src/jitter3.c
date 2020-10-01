@@ -1,4 +1,4 @@
-#define APP_NAME		"Jitter"
+#define APP_NAME		"Jitter3"
 #define APP_DESC		"A sniffer example using libpcap to analyze the comunication frequency of TCP streams."
 
 #include <pcap.h>
@@ -16,6 +16,7 @@
 #include "gnuplot_i.h"
 #include "time_tools.h"
 #include "jitter_data.h"
+#include "menu.h"
 #include "unistd.h"
 #include "ctype.h"
 
@@ -81,6 +82,7 @@ struct sniff_tcp {
 
 int num_packets;			/* number of packets to capture */
 extern anomaly_list *a_list;
+pcap_t *handle = NULL; /*packet capture handle*/
 
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
 
@@ -88,216 +90,16 @@ void print_app_banner(void);
 
 void print_app_usage(void);
 
-void print_graphic(){
-    printf("Insert ip source and ip destination, Example: 'Ip-10.0.2.15-99.86.47.11\n");
-    char file_name[40];
-    int i=0;
-    FILE *f;
-    char aux[121], *token;
-    double d[40], index[40];
-    gnuplot_ctrl * h;
-    h = gnuplot_init();
+int read_params(int argc, char **argv);
 
-    scanf("%s", file_name);
-    strcat(file_name, ".txt");
-    f = fopen (file_name,"r");
-    if(f == NULL) {
-        perror("Error opening file");
-        return;
-    }
-    gnuplot_setstyle(h, "lines");
-    while(fgets(aux, 120, f) != NULL) {
-        token = strtok(aux, " ");
-        d[i] = i;
+void print_capture_info(char *device, char *filter_exp);
 
-        token = strtok(NULL, " ");
-        index[i] = atof(token);
-        printf("time: %le(double) or %d(int), jiter: %le(double) or %d(int)\n", d[i], (int)d[i], index[i], (int)index[i]);
-        i++;
-    }
+void sig_handler(int signo);
 
+int  is_number(char *msg);
 
-    gnuplot_cmd(h, "set term x11 persist");
-    strcat(file_name, ": Jitter Comunication");
-    gnuplot_plot_xy(h, d, index, i-1,file_name);
-    gnuplot_close(h);
-}
+int  is_help_flag(char *msg);
 
-int is_number(char *msg){
-    int i = 0;
-    while(i < strlen(msg)){
-        if(!(isdigit(msg[i]))){
-        	return 0;
-        }
-        i++;
-    }
-    return 1;
-}
-
-int is_help_flag(char *msg){
-    if(strcmp("-h", msg) == 0)
-        return 1;
-    else
-        return 0;        
-}
-
-
-void print_app_banner(void){
-	printf("%s - %s\n", APP_NAME, APP_DESC);
-return;
-}
-
-void print_app_usage(void) {
-	printf("Usage: %s [packet_number]\n", APP_NAME);
-	printf("\n");
-	printf("Argument:\n");
-	printf("(optional)   packet_number       Capture the next <packet_number> packets.\n");
-	printf("\nIf no packet_number is provided, this process will start sniffing non-stop.\n");
-	printf("In both cases until it can be correctly stopped sending a SIGINT interruption to this process.\n");
-return;
-}
-
-void read_params(int argc, char **argv){
-	char param[40];
-    switch(argc){
-		case 1:
-			num_packets = 0;
-			break;
-		case 2:
-            strcpy(param, argv[1]);
-            if(is_help_flag(param)){
-                print_app_usage();
-                num_packets = 0;
-                sleep(2);
-            }
-            else if(is_number(param)){
-                num_packets = atoi(param);
-                if(num_packets < 0){
-                    print_app_usage();
-                    exit(EXIT_FAILURE);
-                }
-            }
-            else{
-                print_app_usage();
-        		exit(EXIT_FAILURE);
-            }
-			break;
-        case 3:{                      
-            strcpy(param, argv[1]);
-            if(is_help_flag(param)){
-                print_app_usage();
-                strcpy(param, argv[2]);
-                if(!is_number(param)){
-                    exit(EXIT_FAILURE); 
-                }
-                num_packets = atoi(param);
-                if(num_packets < 0){
-                    exit(EXIT_FAILURE);
-                }
-                sleep(2);
-                break;
-            }
-            else if(is_number(param)){
-                num_packets = atoi(param);
-                print_app_usage();
-                if(num_packets < 0){
-                    exit(EXIT_FAILURE);
-                }
-                strcpy(param, argv[2]);
-                if(!is_help_flag(param)){
-                    exit(EXIT_FAILURE);      
-                }
-                sleep(2);
-                break;
-            }
-            else {
-                print_app_usage();
-                exit(EXIT_FAILURE);
-            }
-
-        }
-		default:
-			fprintf(stderr, "error: unrecognized command-line arguments\n\n");
-			print_app_usage();
-			exit(EXIT_FAILURE);
-	}
-}
-
-
-void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
-	static int count = 1;                   /* packet counter */
-
-	/* declare pointers to packet headers */
-	const struct sniff_ip *ip;              /* The IP header */
-	const struct sniff_tcp *tcp;            /* The TCP header */
-
-	int size_ip;
-	int size_tcp;
-
-	if(num_packets == 0)
-		printf("\rSniffed packets: %d ", count);
-	else
-		printf("\rSniffed packets: %d / %d", count, num_packets);		
-	fflush(stdout);
-	count++;
-
-
-	/* define/compute ip header offset */
-	ip = (struct sniff_ip*)(packet + SIZE_ETHERNET);
-	size_ip = IP_HL(ip)*4;
-	if (size_ip < 20) {
-		printf("   * Invalid IP header length: %u bytes\n", size_ip);
-		return;
-	}
-
-	/* define/compute tcp header offset */
-	tcp = (struct sniff_tcp*)(packet + SIZE_ETHERNET + size_ip);
-	size_tcp = TH_OFF(tcp)*4;
-	if (size_tcp < 20) {
-		printf("   * Invalid TCP header length: %u bytes\n", size_tcp);
-		return;
-	}
-
-	char *ip_src_string = malloc(sizeof(char) * 50);
-	char *ip_dst_string = malloc(sizeof(char) * 50);
-	strcpy(ip_src_string, inet_ntoa(ip->ip_src));
-	strcpy(ip_dst_string, inet_ntoa(ip->ip_dst));
-	int  src_port = ntohs(tcp->th_sport);
-	int  dst_port = ntohs(tcp->th_dport);
-	struct timespec now = update_timespec();
-
-	char *stream_name = (char *) malloc(sizeof(char) * 60);
-	sprintf(stream_name, "IP-%s->%s", ip_src_string, ip_dst_string);
-	add_record(stream_name, timespec_to_millis(now), src_port, dst_port);
-
-return;
-}
-
-pcap_t *handle = NULL; /*packet capture handle*/
-
-void sig_handler(int signo){
-		//This routine is safe to use inside a signal handler on UNIX or a console control handler on Windows,
-		//as it merely sets a flag that is checked within the loop.
-		if(handle != NULL)
-			pcap_breakloop(handle);
-
-		return;
-}
-
-void print_capture_info(char *device, char *filter_exp){
-	if(device == NULL || filter_exp == NULL){
-		fprintf(stderr, "Method: print_capture_info    Error: NULL device or filter_exp string.  (unexpected arguments)\n");
-	}
-	printf("Device:            %s\n", device);
-	if(num_packets > 0)
-		printf("Number of packets: %d\n", num_packets);
-	else
-		printf("Number of packets: sniffing until SIGINT has been received.\n");
-
-	printf("Filter expression: %s\n", filter_exp);
-
-	return;
-}
 
 int main(int argc, char **argv) {
 	if(signal(SIGINT, sig_handler) == SIG_ERR){
@@ -313,15 +115,14 @@ int main(int argc, char **argv) {
 	struct bpf_program fp;			/* compiled filter program (expression) */
 	bpf_u_int32 mask;			/* subnet mask */
 	bpf_u_int32 net;			/* ip */
-	
-    struct timespec now = update_timespec();
-    long int start = timespec_to_millis(now);
 
+  //struct timespec now = update_timespec();
 	print_app_banner();
 
 	/* check for capture packets number on command-line */
-	read_params(argc, argv);
-	
+	if(read_params(argc, argv) == -1)
+		return 0;
+
 	if(pcap_findalldevs(&dev_list, errbuf) == PCAP_ERROR){
     fprintf(stderr, "Couldn't find default device: %s\n", errbuf);
 		exit(EXIT_FAILURE);
@@ -389,34 +190,176 @@ int main(int argc, char **argv) {
 	pcap_close(handle);
 
 	printf("\n                 Capture completed!\n\n");
-	sleep(2);
-    save_map(start);
-	print_map();
-    print_anomaly_list();
-    int comando = 1;
+	print_summary();
+	notify_uninit();
+	main_menu();
+	free_map();
+	return 0;
 
-    while(comando != 0 ){
-        printf("\n******USER MENU******\n 0: exit\n 1: draw jitter graphic\n 2: print anomaly list\n 3: print connections list\n");
-        scanf("%d", &comando);
+}
 
-        switch (comando) {
-            case 0:
-                return 0;
-                break;
-            case 1:
-                print_graphic();
-                break;
-            case 2:
-                print_anomaly_list();
-                break;
-            case 3:
-                print_map();
-                break;
-            default:
-                printf("Insert correct command\n");
-                break;
+
+
+
+int read_params(int argc, char **argv){
+	char param[40];
+    switch(argc){
+			case 1:
+				num_packets = 0;
+				break;
+			case 2:
+        strcpy(param, argv[1]);
+        if(is_help_flag(param)){
+        	print_app_usage();
+          return -1;
         }
-    }
+        else if(is_number(param)){
+        	num_packets = atoi(param);
+          if(num_packets < 0){
+            print_app_usage();
+            exit(EXIT_FAILURE);
+          }
+        }
+        else {
+        	print_app_usage();
+        	exit(EXIT_FAILURE);
+        }
+				break;
+      case 3:
+      	strcpy(param, argv[1]);
+        if(is_help_flag(param)){
+        	print_app_usage();
+					return -1;
+        }
+        else if(is_number(param)){
+        	num_packets = atoi(param);
+          print_app_usage();
+          if(num_packets < 0)
+          	exit(EXIT_FAILURE);
+          strcpy(param, argv[2]);
+          if(is_help_flag(param))
+						return -1;
+        }
+				else {
+        	print_app_usage();
+          exit(EXIT_FAILURE);
+        }
+				break;
+			default:
+				fprintf(stderr, "error: unrecognized command-line arguments\n\n");
+				print_app_usage();
+				exit(EXIT_FAILURE);
+				break;
+	}
+	return 0;
+}
 
-    return 0;
+void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
+	static int count = 1;                   /* packet counter */
+
+	/* declare pointers to packet headers */
+	const struct sniff_ip *ip;              /* The IP header */
+	const struct sniff_tcp *tcp;            /* The TCP header */
+
+	int size_ip;
+	int size_tcp;
+
+	if(num_packets == 0)
+		printf("\rSniffed packets: %d ", count);
+	else
+		printf("\rSniffed packets: %d / %d", count, num_packets);
+	fflush(stdout);
+	count++;
+
+
+	/* define/compute ip header offset */
+	ip = (struct sniff_ip*)(packet + SIZE_ETHERNET);
+	size_ip = IP_HL(ip)*4;
+	if (size_ip < 20) {
+		printf("   * Invalid IP header length: %u bytes\n", size_ip);
+		return;
+	}
+
+	/* define/compute tcp header offset */
+	tcp = (struct sniff_tcp*)(packet + SIZE_ETHERNET + size_ip);
+	size_tcp = TH_OFF(tcp)*4;
+	if (size_tcp < 20) {
+		printf("   * Invalid TCP header length: %u bytes\n", size_tcp);
+		return;
+	}
+
+	char *ip_src_string = malloc(sizeof(char) * 50);
+	char *ip_dst_string = malloc(sizeof(char) * 50);
+	strcpy(ip_src_string, inet_ntoa(ip->ip_src));
+	strcpy(ip_dst_string, inet_ntoa(ip->ip_dst));
+	int  src_port = ntohs(tcp->th_sport);
+	int  dst_port = ntohs(tcp->th_dport);
+	struct timespec now = update_timespec();
+
+	char *stream_name = (char *) malloc(sizeof(char) * 60);
+	sprintf(stream_name, "IP-%s->%s", ip_src_string, ip_dst_string);
+	add_record(stream_name, timespec_to_millis(now), src_port, dst_port);
+
+	free(ip_src_string);
+	free(ip_dst_string);
+
+return;
+}
+
+void print_capture_info(char *device, char *filter_exp){
+	if(device == NULL || filter_exp == NULL){
+		fprintf(stderr, "Method: print_capture_info    Error: NULL device or filter_exp string.  (unexpected arguments)\n");
+	}
+	printf("Device:            %s\n", device);
+	if(num_packets > 0)
+		printf("Number of packets: %d\n", num_packets);
+	else
+		printf("Number of packets: sniffing until SIGINT has been received.\n");
+
+	printf("Filter expression: %s\n", filter_exp);
+
+	return;
+}
+
+void sig_handler(int signo){
+		//This routine is safe to use inside a signal handler on UNIX or a console control handler on Windows,
+		//as it merely sets a flag that is checked within the loop.
+		if(handle != NULL)
+			pcap_breakloop(handle);
+
+		return;
+}
+
+int  is_number(char *msg){
+    int i = 0;
+    while(i < strlen(msg)){
+        if(!(isdigit(msg[i]))){
+        	return 0;
+        }
+        i++;
+    }
+    return 1;
+}
+
+int  is_help_flag(char *msg){
+    if(strcmp("-h", msg) == 0)
+        return 1;
+    else
+        return 0;
+}
+
+void print_app_banner(void){
+	printf("%s - %s\n", APP_NAME, APP_DESC);
+    return;
+}
+
+void print_app_usage(void) {
+	printf("Usage: jitter [packet_number] -h\n");
+	printf("Argument:\n");
+	printf("(optional)   packet_number       Capture the next <packet_number> packets.\n");
+	printf("(optional)   -h                  Print an help guide to start this program.\n");
+	printf("\nIf no packet_number is provided, this process will start sniffing non-stop.\n");
+	printf("In both cases until it can be correctly stopped sending a SIGINT interruption (Ctrl + c) to stop sniffing.\n");
+	printf("Examples: ./jitter -h\n          ./jitter\n          ./jitter 50\n");
+  return;
 }

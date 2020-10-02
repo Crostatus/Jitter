@@ -11,12 +11,20 @@ libpcap is a portable C/C++ library for network traffic capture. ([GitHub reposi
 
 This program aims to see the jitter of TCP comunications happening from/to the host machine, and detects suspicious jitter variation.
 In this text we will try to cover and explain the essential components of this program and how it works in the following order:
- 1. **[Project structure](#project-structure)**
- 2. **[How to build it](#how-to-build-it)**
- 3. **[Program usage](#program-usage)**   
- 4. **[How it works](#how-it-works)**
+ 1. **[Aim of this tool](#aim-of-this-tool)**
+ 2. **[Project structure](#project-structure)**
+ 3. **[How to build it](#how-to-build-it)**
+ 4. **[Program usage](#program-usage)**   
+ 5. **[How it works](#how-it-works)**
 
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**[Credits](#credits)**
+
+ # Aim of this tool  
+ The main purpose of this program is to allow the user to monitor his network traffic.    
+ An alarm is sent to the user when a detected connection happens to have a unusual jitter behaviour.    
+ Since **an alarm could not represent a malicious activity**, this software can be seen as **a tool to have a first look on what's going on in his network**.    
+
+ It also offers the option to **save, as a graph, the image of a communication** trend about his jitter. Those images will be stored in the *graphs* directory.
 
  ## Project structure
 This is a quite small project, but it's never a bad idea to give a general overview for a better file exploration.     
@@ -42,12 +50,12 @@ This is a quite small project, but it's never a bad idea to give a general overv
 🛠️Makefile &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *project builder*    
 
 ## How to build it
-In order to compile this project, you need to have [libpcap](https://github.com/the-tcpdump-group/libpcap) (*v 1.9.1-3 or newer*), [gnuplot](http://www.gnuplot.info/) (*v 5.2 or newer*) and [libnotify](https://developer.gnome.org/libnotify/0.7/) (*v 0.7.7*) installed.    
+In order to compile this project, you need to have [libpcap](https://github.com/the-tcpdump-group/libpcap) (*v 1.9.1-3 or newer*), [gnuplot](http://www.gnuplot.info/) (*v 5.2 or newer*) and [libnotify](https://developer.gnome.org/libnotify/0.7/) (*v 0.7.9-1ubuntu2*) installed.    
 One way to easily get it, **on Ubuntu**, is to use the following commands:    
 `sudo apt-get install libpcap-dev`&nbsp;&nbsp;&nbsp;`sudo apt-get install gnuplot`&nbsp;&nbsp;&nbsp; `sudo apt-get install libnotify-dev`    
 
 To check your current versions:    
-`apt-cache show libpcap-dev` &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`gnuplot-V`
+`apt-cache show libpcap-dev` &nbsp;&nbsp;&nbsp;	&nbsp;&nbsp;`gnuplot-V`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; `apt-cache show libnotify-dev`
 
 That's it! Now you can use the Makefile to get everything done, just run `make` in the project folder and you are ready to go.     
 
@@ -85,7 +93,7 @@ Every time that one of those packets gets captured, informations about it will b
 - Jitter of its communication
 - Order of arrival
 
-In order to calculate the jitter, since it represents the variance of intra-packet delay, **at least three** TCP streams exchanges need to have happened in a communication.    
+In order to calculate the jitter, since it represents the variance of intra-packet delay, **at least three** TCP streams exchanges need to have happened in a communication.  
 
 ### How the jitter gets calculated?  
 A communication's jitter gets calculated using the following formula:  
@@ -95,7 +103,7 @@ Where:
 &nbsp;&nbsp;&nbsp;*x(i)*&nbsp;&nbsp;= arrive time of the i th packet.    
 &nbsp;&nbsp;&nbsp;*n* &nbsp;&nbsp;&nbsp;&nbsp;= total packets number at the moment.
 
-### When a connections is considered suspicious?    
+### When is a connection suspicious?    
 This program defines a behaviour suspicious when a new jitter undergoes **a variation greater than 50% of the average jitter's communication**.    
 
 A minimal example on a <IP_source, IP_destination> exchange of TCP packets:    
@@ -105,7 +113,10 @@ A minimal example on a <IP_source, IP_destination> exchange of TCP packets:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5 th    |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    105    | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;60                    | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*yes*
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;6 th		            |  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;120     |     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;72        |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*yes*
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7 th| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;115            | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;79       |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *no* |
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;8 th         | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 99 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;82 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *no*
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;8 th         | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 99 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;82 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *no*    
+
+In order to get a more accurate jitter average and avoid sending false/premature alarms when the connection is just starting, the program will start to decide to notify a jitter variation to the user **from the 5 th packet on**.    
+
 
 ## Credits    
 This little project has been a fun experience made as a team by [Alessandro Niccolini](https://github.com/alexnicco98), [Kostantino Prifti](https://github.com/Elkosta) and [Andrea Boccone](https://github.com/Crostatus).  🍻  

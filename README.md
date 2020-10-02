@@ -76,7 +76,7 @@ Once that the sniffing has stopped, a very simple menu will show up to see the c
 This program aims to detect and notify a **suspicious** jitter variation happening in a **TCP** communication that has been captured since the program is sniffing.    
 Each pair of <IP_source, IP_destination> gets treated as a different communication, and it will be prepresented as **IP:IP_source->IP_destination**.    
 
-The programs notes every time a pair of hosts exchanges a stream of TCP packets by looking at the ones having `SYN = 1`.    
+The programs notes every time a pair of hosts exchanges a stream of TCP packets by looking at the ones having `SYN = 1` ( The **SYN** flag synchronizes sequence numbers to initiate a TCP connection ).    
 Every time that one of those packets gets captured, informations about it will be stored, as:    
 - Arrive time    
 - Delay from previous packet
@@ -96,8 +96,16 @@ Where:
 &nbsp;&nbsp;&nbsp;*n* &nbsp;&nbsp;&nbsp;&nbsp;= total packets number at the moment.
 
 ### When a connections is considered suspicious?    
-[WIP]
+This program defines a behaviour suspicious when a new jitter undergoes **a variation greater than 50% of the average jitter's communication**.    
 
+A minimal example on a <IP_source, IP_destination> exchange of TCP packets:    
+
+|Packet with `SYN = 1`              |Jitter (ms)                       | Average jitter (ms)| Is suspicious         |           
+|----------------|-------------------------------|-----------------------------|--------------------|
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5 th    |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    105    | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;60                    | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*yes*
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;6 th		            |  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;120     |     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;72        |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*yes*
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7 th| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;115            | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;79       |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *no* |
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;8 th         | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 99 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;82 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *no*
 
 ## Credits    
 This little project has been a fun experience made as a team by [Alessandro Niccolini](https://github.com/alexnicco98), [Kostantino Prifti](https://github.com/Elkosta) and [Andrea Boccone](https://github.com/Crostatus).  🍻  

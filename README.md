@@ -137,7 +137,7 @@ Nmap is a open source tool for packet network generation.
 xterm is a unix-like terminal emulator.
 
 **Type `make test` to start the test**.    
-It consists in starting various TCP communications to generate some network traffic meanwhile this tool is running, to let it start sniffing.
+It consists in starting various TCP communications to generate some network traffic meanwhile this tool is running, to let the sniffing start.
 
 
 

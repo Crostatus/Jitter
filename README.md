@@ -50,6 +50,8 @@ This is a quite small project, but it's never a bad idea to give a general overv
 
 ⚙️jitter &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp; *executable file*  
 
+💻 test.sh &emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp; script file
+
 ## How to build it
 In order to compile this project, you need to have [libpcap](https://github.com/the-tcpdump-group/libpcap) (*v 1.9.1-3 or newer*), [gnuplot](http://www.gnuplot.info/) (*v 5.2 or newer*) and [libnotify](https://developer.gnome.org/libnotify/0.7/) (*v 0.7.9-1ubuntu2*) installed.    
 One way to easily get it, **on Ubuntu**, is to use the following commands:    
@@ -74,7 +76,8 @@ Those two ways to run and which network device to use can be set giving extra pa
 |packet_number|Non negative integer            |yes         |    
 |device_name| String            |yes         |
 
-If no *device_name* is provided, the first network device listed by [libpcap's method `pcap_findalldevs()`](https://www.tcpdump.org/manpages/pcap_findalldevs.3pcap.html) will be used.
+The network device to use can be chosen by adding its name as an additional parameter, writing "**-i** device_name".  
+If no "**-i** *device_name*" is provided, the first network device listed by [libpcap's method `pcap_findalldevs()`](https://www.tcpdump.org/manpages/pcap_findalldevs.3pcap.html) will be used.
 
 **Otherwise**, if you need help, you can run it with "**-h**" to read a short description on how to launch and what to expect from it.
 

@@ -75,7 +75,7 @@ void print_record(record *tmp_r, int pkts_num){
 
 	char buf[80];
 	struct tm ts = *localtime(&time_in_sec);
-  strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &ts);
+  	strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &ts);
 	if(pkts_num == 1)
 		printf(" [Packet %d] Arrive time: %s. Ports: %d -> %d\n", pkts_num, buf, tmp_r->src_port, tmp_r->dst_port);
 	else{
@@ -178,8 +178,9 @@ void print_summary(){
 
 //Change ownership and read/write/modify permissions of a file.
 void set_permissions(char *file, mode_t mode){
+	pid_t id = getpid();
 	chmod(file, mode);
-	chown(file, "Jitter3", "Jitter3");
+	chown(file, id, id);
 	return;
 }
 
@@ -404,59 +405,57 @@ void draw_stream(int flag){
 			}
 		}
 
-    char file_name[40];
     FILE *f;
-    char aux[121], *token;
+    char aux[121];
     gnuplot_ctrl * h;
-		tcp_stream *stream_to_draw;
+	tcp_stream *stream_to_draw;
     h = gnuplot_init();
 
-		if( (stream_to_draw = stream_lookup(index, flag)) == NULL){
-			perror("Fatal error stream_lookup failed!");
-			exit(EXIT_FAILURE);
-		}
+	if( (stream_to_draw = stream_lookup(index, flag)) == NULL){
+		perror("Fatal error stream_lookup failed!");
+		exit(EXIT_FAILURE);
+	}
 
-		if(stream_to_draw->pkts_num < 3){
-			printf("This connection has too few recorded packets to draw a usefull graph!\n");
-			draw_stream(flag);
-			return;
-		}
+	if(stream_to_draw->pkts_num < 3){
+		printf("This connection has too few recorded packets to draw a usefull graph!\n");
+		draw_stream(flag);
+		return;
+	}
 
-		save_flag = ask_to_save();
+	save_flag = ask_to_save();
 
-		double *data = get_stream_values(stream_to_draw);
+	double *data = get_stream_values(stream_to_draw);
 
 
   	gnuplot_setstyle(h, "lines");
-		gnuplot_cmd(h, "set xrange [1:]");
-		gnuplot_cmd(h, "set xtics 1");
+	gnuplot_cmd(h, "set xrange [1:]");
+	gnuplot_cmd(h, "set xtics 1");
     gnuplot_cmd(h, "set term x11 persist");
 
     gnuplot_set_xlabel(h, "# packets");
     gnuplot_set_ylabel(h, "Jitter (ms)");
     gnuplot_plot_x(h, data, stream_to_draw->pkts_num, stream_to_draw->stream_name);
-		gnuplot_close(h);
+	gnuplot_close(h);
 
-		if( save_flag ){
-			h = gnuplot_init();
-			gnuplot_setstyle(h, "lines");
-			gnuplot_cmd(h, "set xrange [1:]");
-			gnuplot_cmd(h, "set xtics 1");
+	if( save_flag ){
+		h = gnuplot_init();
+		gnuplot_setstyle(h, "lines");
+		gnuplot_cmd(h, "set xrange [1:]");
+		gnuplot_cmd(h, "set xtics 1");
 
     	gnuplot_set_xlabel(h, "# packets");
     	gnuplot_set_ylabel(h, "Jitter (ms)");
 
-			gnuplot_cmd(h, "set terminal png size 800,600");
-			sprintf(aux, "set output './graphs/%s.png'", stream_to_draw->stream_name);
-			gnuplot_cmd(h, aux);
-			gnuplot_plot_x(h, data, stream_to_draw->pkts_num, stream_to_draw->stream_name);
-			sprintf(aux, "./graphs/%s.png", stream_to_draw->stream_name);
-			printf("AUX: %s\n", aux);
-			FILE *fp = fopen (aux,"w");
-			set_permissions(aux, S_IXOTH | S_IROTH | S_IWOTH | S_IXGRP | S_IRGRP | S_IWGRP | S_IXUSR | S_IRUSR | S_IWUSR);
-			fclose(fp);
-			gnuplot_close(h);
-		}
-		free(data);
-		return;
+		gnuplot_cmd(h, "set terminal png size 800,600");
+		sprintf(aux, "set output './graphs/%s.png'", stream_to_draw->stream_name);
+		gnuplot_cmd(h, aux);
+		gnuplot_plot_x(h, data, stream_to_draw->pkts_num, stream_to_draw->stream_name);
+		sprintf(aux, "./graphs/%s.png", stream_to_draw->stream_name);
+		f = fopen (aux,"w");
+		set_permissions(aux, S_IXOTH | S_IROTH | S_IWOTH | S_IXGRP | S_IRGRP | S_IWGRP | S_IXUSR | S_IRUSR | S_IWUSR);
+		fclose(f);
+		gnuplot_close(h);
+	}
+	free(data);
+	return;
 }
